@@ -1,0 +1,39 @@
+# CD pipeline: lint -> test -> build -> deploy
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: cd-pipeline
+spec:
+  workspaces:
+    - name: pipeline-workspace
+  tasks:
+    - name: lint
+      taskRef:
+        name: lint-code
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+    - name: test
+      taskRef:
+        name: run-tests
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      runAfter:
+        - lint
+    - name: build
+      taskRef:
+        name: build-image
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      runAfter:
+        - test
+    - name: deploy
+      taskRef:
+        name: deploy-app
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      runAfter:
+        - build
